@@ -1,0 +1,4 @@
+google-cloud-translate==3.11.1
+gTTS==2.3.2
+playsound==1.2.2
+
