@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,6 +58,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -76,6 +78,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -178,6 +181,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -257,6 +261,7 @@
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
@@ -307,6 +312,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="nav-header">
@@ -339,7 +345,11 @@
             <div class="output-section" id="outputSection">
                 <div class="output-label">Kannada Translation</div>
                 <div class="output-text" id="kannada-output"></div>
-                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy</button>
+                <div class="button-group">
+                    <button class="copy-btn" onclick="copyToClipboard()">📋 Copy</button>
+                    <button class="btn-translate" onclick="playAudio()" style="background: var(--success);">🔊
+                        Listen</button>
+                </div>
             </div>
         </div>
     </div>
@@ -374,7 +384,12 @@
             outputSection.classList.remove('show');
 
             try {
-                const response = await fetch('/translate', {
+                // Handle local file access by pointing to the Flask server explicitly
+                const apiUrl = window.location.protocol === 'file:'
+                    ? 'http://127.0.0.1:5000/translate'
+                    : '/translate';
+
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -416,6 +431,47 @@
             });
         }
 
+        async function playAudio() {
+            const text = kannada_output.textContent;
+            if (!text) return;
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '⌛ Loading...';
+            btn.disabled = true;
+
+            try {
+                // Use the same origin-aware logic for audio
+                const baseUrl = window.location.protocol === 'file:'
+                    ? 'http://127.0.0.1:5000'
+                    : '';
+
+                const audioUrl = `${baseUrl}/speak?text=${encodeURIComponent(text)}&lang=kn`;
+                const audio = new Audio(audioUrl);
+
+                audio.onplaying = () => {
+                    btn.textContent = '🔊 Playing...';
+                };
+
+                audio.onended = () => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                };
+
+                audio.onerror = () => {
+                    alert('Error playing audio. Please ensure the server is running.');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                };
+
+                await audio.play();
+            } catch (error) {
+                console.error('Audio error:', error);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
         // Allow Enter key to translate
         englishInput.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
@@ -424,4 +480,5 @@
         });
     </script>
 </body>
+
 </html>
