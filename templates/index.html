@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English to Kannada Translator</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
@@ -26,7 +26,7 @@
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="translate.html">Try Now</a></li>
+                <li><a href="/translate">Try Now</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
@@ -41,7 +41,7 @@
                 <span class="title-word">Kannada</span>
             </h1>
             <p class="hero-subtitle">Translate, Learn, and Speak Kannada</p>
-            <a href="translate.html" class="cta-button">Start Translating</a>
+            <a href="/translate" class="cta-button">Start Translating</a>
         </div>
         <div class="floating-cards">
             <div class="card card-1">EN</div>
