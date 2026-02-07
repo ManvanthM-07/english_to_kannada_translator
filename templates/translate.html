@@ -146,8 +146,64 @@
             letter-spacing: -0.02em;
             background: linear-gradient(to right, #fff, #a78bfa);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .swap-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--primary);
+            padding: 8px;
+            font-size: 1.6rem;
+            user-select: none;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.03);
+            border: 1px solid transparent;
+            /* Reset parent gradient text effects */
+            -webkit-text-fill-color: var(--primary);
+            background-clip: padding-box;
+        }
+
+        .swap-arrow:hover {
+            transform: scale(1.2);
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            -webkit-text-fill-color: white;
+            color: white;
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .swap-arrow:active {
+            transform: scale(0.9);
+        }
+
+        .swap-arrow.rotating {
+            animation: smoothFlip 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes smoothFlip {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.4) rotate(90deg);
+                -webkit-text-fill-color: white;
+            }
+
+            100% {
+                transform: rotate(180deg) scale(1);
+            }
         }
 
         header p {
@@ -459,7 +515,11 @@
         </div>
 
         <header>
-            <h1>English ⇄ Kannada</h1>
+            <h1>
+                <span id="sourceLang">English</span>
+                <span class="swap-arrow" id="swapBtn" onclick="swapLanguages()" title="Swap Languages">⇄</span>
+                <span id="targetLang">Kannada</span>
+            </h1>
             <p>Experience the future of translation</p>
         </header>
 
@@ -473,13 +533,13 @@
                 <div class="group-label">
                     <span>
                         <i class="ph ph-text-aa"></i>
-                        Input English Text
+                        <span id="inputLabel">Input English Text</span>
                     </span>
                     <button id="micBtn" class="mic-btn" onclick="toggleVoiceInput()" title="Voice Input">
                         <i class="ph ph-microphone"></i>
                     </button>
                 </div>
-                <textarea id="englishText" placeholder="Start typing something wonderful..."></textarea>
+                <textarea id="inputText" placeholder="Start typing something wonderful..."></textarea>
             </div>
 
             <div class="button-row">
@@ -501,9 +561,9 @@
             <div class="output-card" id="outputSection">
                 <div class="group-label" style="color: var(--secondary); margin-bottom: 12px;">
                     <i class="ph ph-globe-hemisphere-east"></i>
-                    Kannada Result
+                    <span id="outputLabel">Kannada Result</span>
                 </div>
-                <div id="kannada-output" class="output-text"></div>
+                <div id="outputText" class="output-text"></div>
 
                 <div class="output-actions">
                     <button class="btn btn-listen" id="listenBtn" onclick="playAudio()">
@@ -524,12 +584,22 @@
     </footer>
 
     <script>
-        const englishInput = document.getElementById('englishText');
+        // State management
+        let currentDirection = 'en-kn'; // 'en-kn' or 'kn-en'
+
+        const inputTextArea = document.getElementById('inputText');
         const outputSection = document.getElementById('outputSection');
-        const kannadaOutput = document.getElementById('kannada-output');
+        const outputTextDiv = document.getElementById('outputText');
         const errorMessage = document.getElementById('errorMessage');
         const errorTarget = document.getElementById('errorTarget');
         const loading = document.getElementById('loading');
+
+        // UI Elements for dynamic updates
+        const sourceLangSpan = document.getElementById('sourceLang');
+        const targetLangSpan = document.getElementById('targetLang');
+        const inputLabel = document.getElementById('inputLabel');
+        const outputLabel = document.getElementById('outputLabel');
+        const swapBtn = document.getElementById('swapBtn');
 
         function hideError() {
             errorMessage.classList.remove('show');
@@ -541,9 +611,51 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function swapLanguages() {
+            // Toggle direction
+            currentDirection = currentDirection === 'en-kn' ? 'kn-en' : 'en-kn';
+
+            // Add rotation animation
+            swapBtn.classList.add('rotating');
+            setTimeout(() => swapBtn.classList.remove('rotating'), 600);
+
+            // Update UI based on new direction
+            updateUI();
+
+            // Clear output when switching
+            outputSection.classList.remove('show');
+            hideError();
+        }
+
+        function updateUI() {
+            if (currentDirection === 'en-kn') {
+                sourceLangSpan.textContent = 'English';
+                targetLangSpan.textContent = 'Kannada';
+                inputLabel.textContent = 'Input English Text';
+                outputLabel.textContent = 'Kannada Result';
+                inputTextArea.placeholder = 'Start typing something wonderful...';
+
+                // Update voice recognition language
+                if (recognition) {
+                    recognition.lang = 'en-US';
+                }
+            } else {
+                sourceLangSpan.textContent = 'Kannada';
+                targetLangSpan.textContent = 'English';
+                inputLabel.textContent = 'Input Kannada Text';
+                outputLabel.textContent = 'English Result';
+                inputTextArea.placeholder = 'ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ...';
+
+                // Update voice recognition language
+                if (recognition) {
+                    recognition.lang = 'kn-IN';
+                }
+            }
+        }
+
         async function translateText() {
             hideError();
-            const text = englishInput.value.trim();
+            const text = inputTextArea.value.trim();
 
             if (!text) {
                 showError('Please enter some text to translate');
@@ -562,13 +674,16 @@
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
+                    body: JSON.stringify({
+                        text: text,
+                        direction: currentDirection
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    kannadaOutput.textContent = data.kannada;
+                    outputTextDiv.textContent = data.output;
                     outputSection.classList.add('show');
                 } else {
                     showError(data.error || 'The nebula calculation failed.');
@@ -581,14 +696,14 @@
         }
 
         function clearText() {
-            englishInput.value = '';
+            inputTextArea.value = '';
             outputSection.classList.remove('show');
             hideError();
-            englishInput.focus();
+            inputTextArea.focus();
         }
 
         function copyToClipboard() {
-            const text = kannadaOutput.textContent;
+            const text = outputTextDiv.textContent;
             const btn = document.getElementById('copyBtn');
             const icon = btn.querySelector('i');
 
@@ -605,7 +720,7 @@
         }
 
         async function playAudio() {
-            const text = kannadaOutput.textContent;
+            const text = outputTextDiv.textContent;
             if (!text) return;
 
             const btn = document.getElementById('listenBtn');
@@ -619,7 +734,9 @@
                     ? 'http://127.0.0.1:5000'
                     : '';
 
-                const audioUrl = `${baseUrl}/speak?text=${encodeURIComponent(text)}&lang=kn`;
+                // Determine language for TTS based on output
+                const ttsLang = currentDirection === 'en-kn' ? 'kn' : 'en';
+                const audioUrl = `${baseUrl}/speak?text=${encodeURIComponent(text)}&lang=${ttsLang}`;
                 const audio = new Audio(audioUrl);
 
                 audio.onplaying = () => {
@@ -668,12 +785,15 @@
                 const micBtn = document.getElementById('micBtn');
                 micBtn.classList.remove('active');
                 micBtn.querySelector('i').className = 'ph ph-microphone';
-                englishInput.placeholder = "Start typing something wonderful...";
+                // Restore original placeholder based on direction
+                inputTextArea.placeholder = currentDirection === 'en-kn'
+                    ? 'Start typing something wonderful...'
+                    : 'ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ...';
             };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                englishInput.value = transcript;
+                inputTextArea.value = transcript;
                 translateText(); // Auto-translate after voice input
             };
 
@@ -702,9 +822,12 @@
         }
 
         // Shortcuts
-        englishInput.addEventListener('keydown', (e) => {
+        inputTextArea.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') translateText();
         });
+
+        // Initialize UI on page load
+        updateUI();
 
         // Add Phosphor Spin
         const style = document.createElement('style');

@@ -14,13 +14,16 @@ except Exception:
     playsound = None
 
 
-def translate_text(text, dest='kn'):
-    """Translate text to Kannada using Google Translate API"""
+def translate_text(text, direction='en-kn'):
+    """Translate text bidirectionally (English <-> Kannada) using Google Translate API"""
     try:
+        # Parse direction: 'en-kn' means English to Kannada, 'kn-en' means Kannada to English
+        source_lang, target_lang = direction.split('-')
+        
         params = {
             'client': 'gtx',
-            'sl': 'en',
-            'tl': dest,
+            'sl': source_lang,
+            'tl': target_lang,
             'dt': 't',
             'q': text
         }
@@ -64,16 +67,23 @@ def translate():
         if not data:
             return jsonify({'error': 'No data received'}), 400
             
-        english_text = data.get('text', '').strip()
+        input_text = data.get('text', '').strip()
+        direction = data.get('direction', 'en-kn')  # Default: English to Kannada
         
-        if not english_text:
+        if not input_text:
             return jsonify({'error': 'Please enter text to translate'}), 400
         
-        kannada_text = translate_text(english_text)
+        translated_text = translate_text(input_text, direction)
+        
+        # Determine source and target for response
+        source_lang, target_lang = direction.split('-')
         
         return jsonify({
-            'english': english_text,
-            'kannada': kannada_text
+            'input': input_text,
+            'output': translated_text,
+            'direction': direction,
+            'source_lang': source_lang,
+            'target_lang': target_lang
         })
     
     return render_template('translate.html')
