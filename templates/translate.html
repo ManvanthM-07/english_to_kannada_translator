@@ -485,15 +485,55 @@
 
         @media (max-width: 640px) {
             header h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                gap: 10px;
+            }
+
+            header p {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 30px 15px;
             }
 
             .glass-card {
-                padding: 24px;
+                padding: 24px 20px;
+                border-radius: 24px;
+            }
+
+            textarea {
+                min-height: 150px;
+                font-size: 1.1rem;
+                padding: 18px;
             }
 
             .button-row {
                 flex-direction: column;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 14px;
+            }
+
+            .output-text {
+                font-size: 1.3rem;
+            }
+
+            .output-card {
+                padding: 24px 18px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .swap-arrow {
+                font-size: 1.3rem;
             }
         }
     </style>
