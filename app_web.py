@@ -25,6 +25,8 @@ def translate_text(text, direction='en-kn'):
             'sl': source_lang,
             'tl': target_lang,
             'dt': 't',
+            'ie': 'UTF-8',
+            'oe': 'UTF-8',
             'q': text
         }
         response = requests.get('https://translate.googleapis.com/translate_a/single', params=params, timeout=10)

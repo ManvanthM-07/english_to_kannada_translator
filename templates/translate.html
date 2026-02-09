@@ -148,12 +148,29 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 16px;
             flex-wrap: wrap;
+        }
+
+        .swap-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .swap-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            -webkit-text-fill-color: var(--text-muted);
+            opacity: 0.8;
         }
 
         .swap-arrow {
@@ -397,6 +414,7 @@
         .output-actions {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn-action {
@@ -409,6 +427,7 @@
 
         .btn-listen {
             flex: 1;
+            min-width: 140px;
             background: var(--secondary);
             color: white;
             box-shadow: 0 8px 20px var(--secondary-glow);
@@ -513,9 +532,26 @@
                 gap: 12px;
             }
 
-            .btn {
+            .button-row .btn {
                 width: 100%;
                 padding: 14px;
+            }
+
+            .btn-action {
+                width: 56px !important;
+                height: 56px !important;
+                padding: 0 !important;
+            }
+
+            .btn-listen {
+                width: calc(100% - 68px) !important;
+                /* Total width - (copy btn width + gap) */
+                min-width: 0 !important;
+                padding: 14px !important;
+            }
+
+            .output-actions {
+                flex-wrap: nowrap !important;
             }
 
             .output-text {
@@ -557,7 +593,10 @@
         <header>
             <h1>
                 <span id="sourceLang">English</span>
-                <span class="swap-arrow" id="swapBtn" onclick="swapLanguages()" title="Swap Languages">⇄</span>
+                <div class="swap-container">
+                    <span class="swap-hint">Click to Swap</span>
+                    <span class="swap-arrow" id="swapBtn" onclick="swapLanguages()" title="Swap Languages">⇄</span>
+                </div>
                 <span id="targetLang">Kannada</span>
             </h1>
             <p>Experience the future of translation</p>
